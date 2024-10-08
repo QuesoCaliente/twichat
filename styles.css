@@ -1,0 +1,151 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --message-max-width: 900px;
+}
+
+/* reset css */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+
+.username {
+    font-weight: semibold;
+    font-size: 1.2em;   /* Aumenta el tamaño del nombre de usuario */
+    text-shadow: 0px 0px 5px rgb(0, 0, 0, 0.1);
+}
+
+.message {
+    font-weight: bold;
+    font-family: "Montserrat", sans-serif;
+    margin-bottom: 10px;
+    padding-inline: 20px;
+    padding-block: 10px;
+    font-size: 1.6em;   /* Aumenta el tamaño del mensaje */
+    width: fit-content;
+    flex-direction: column;
+    border-radius: 10px;
+    background-color: rgb(0, 0, 0, 0.5);
+    color: white;
+    text-shadow: 1px 2px 5px rgb(0, 0, 0, 1);
+    display: flex;
+    align-items: start;
+    gap: 4px;
+    opacity: 1;
+    flex-wrap: wrap;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.message-text {
+    max-width: var(--message-max-width);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.badges {
+    display: flex;
+    gap: 6px;
+}
+
+.badges img {
+    border-radius: 50%;
+    box-shadow: 0px 0px 5px rgb(0, 0, 0, 0.1);
+    width: 40px;
+    height: 40px;
+}
+
+.appear {
+    opacity: 0;
+    transform: translateY(20px); /* Animación de entrada */
+    animation: appearAnimation 0.5s forwards;
+}
+
+@keyframes appearAnimation {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.disappear {
+    opacity: 0;
+    transform: translateY(-20px); /* Animación de salida */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #333;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+form {
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 300px;
+}
+
+label {
+    margin-bottom: 5px;
+    display: block;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5c7cfa;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4a66d4;
+}
+
+#generated-url {
+    margin-top: 20px;
+    padding: 10px;
+    background: #e7f0ff;
+    border: 1px solid #5c7cfa;
+    border-radius: 4px;
+    max-width: 600px; /* Ancho máximo de la URL generada */
+    word-wrap: break-word; /* Permitir saltos de línea en URLs largas */
+}
+
+h2 {
+    margin-top: 20px;
+    color: #5c7cfa;
+}

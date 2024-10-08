@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Document</title>
+</head>
+<body>
+    <form id="url-generator-form">
+        <h1>TwiChat</h1>
+        
+        <label for="channel">Channel:</label>
+        <input type="text" id="channel" name="channel" required>
+
+        <label for="invertir">Invertir:</label>
+        <select id="invertir" name="invertir">
+            <option value="false">No</option>
+            <option value="true">Sí</option>
+        </select>
+
+        <label for="comentarios">Comentarios (máx.):</label>
+        <input type="number" id="comentarios" name="comentarios" min="1" max="100" value="10">
+
+        <label for="maxWidth">Ancho Máximo:</label>
+        <input type="text" id="maxWidth" name="maxWidth" value="900px">
+
+
+    <h2>URL Generada:</h2>
+    <div id="generated-url">
+        Ingresa tu canal de Twitch en la URL y se generará una URL que te permitirá ver tus comentarios en tiempo real.
+    </div>
+    </form>
+
+    <main id="twitch-container"></main>
+    <script type="module" src="index.js"></script>
+
+    <script>
+        const form = document.getElementById('url-generator-form');
+        const generatedUrlDiv = document.getElementById('generated-url');
+
+        const updateGeneratedUrl = () => {
+            // Obtener valores de los campos del formulario
+            const channel = document.getElementById('channel').value;
+            const invertir = document.getElementById('invertir').value;
+            const comentarios = document.getElementById('comentarios').value;
+            const maxWidth = document.getElementById('maxWidth').value;
+
+            // Generar la URL
+            const baseUrl = window.location.origin + window.location.pathname; // Obtener la URL base
+            const generatedUrl = `${baseUrl}?channel=${encodeURIComponent(channel)}&invertir=${invertir}&comentarios=${comentarios}&maxWidth=${encodeURIComponent(maxWidth)}`;
+
+            // Actualizar el contenido del div con la URL generada
+            generatedUrlDiv.innerText = generatedUrl;
+        };
+
+        // Agregar eventos de entrada a cada campo
+        form.addEventListener('input', updateGeneratedUrl);
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Evitar el comportamiento predeterminado del formulario
+
+            // Redirigir a la nueva URL
+            window.location.href = generatedUrlDiv.innerText;
+        });
+
+                // Verificar si hay un parámetro 'channel' en la URL
+                const urlParams = new URLSearchParams(window.location.search);
+        const channel = urlParams.get('channel');
+        const twitchContainer = document.getElementById('twitch-container');
+
+        if (channel) {
+      
+            form.style.display = 'none';
+            twitchContainer.style.display = 'block'; 
+
+            document.body.style.backgroundColor = 'transparent';
+        
+            document.body.style.justifyContent = 'flex-start';
+            document.body.style.alignItems = 'flex-start';
+
+            updateGeneratedUrl(); // Generar la URL inicial para el contenedor
+        } else {
+            // Si no hay 'channel', mostrar el formulario
+            form.style.display = 'block';
+            document.body.style.backgroundColor = '#202023';
+        }
+    </script>
+</body>
+</html>
