@@ -6,7 +6,4 @@ Este proyecto es una aplicación web que muestra un chat de Twitch en tiempo rea
 
 - Mostrar los comentarios de Twitch en tiempo real.
 - Mostrar las insignias (badges) de los usuarios.
-- Limitar el número de comentarios mostrados en pantalla.
-- Opciones de visualización: invertir el orden de los comentarios y mostrar los comentarios más recientes primero.
-- limitar el ancho de los comentarios.
-- Animación de entrada y salida de los comentarios.
+- Tamaño de fuente configurable.

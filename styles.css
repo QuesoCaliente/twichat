@@ -1,88 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-:root {
-    --message-max-width: 900px;
-}
-
-/* reset css */
-* {
-    margin: 0;
-    padding: 0;
-}
-
-
-.username {
-    font-weight: semibold;
-    font-size: 1.2em;   /* Aumenta el tamaño del nombre de usuario */
-    text-shadow: 0px 0px 5px rgb(0, 0, 0, 0.1);
-}
-
-.message {
-    font-weight: bold;
-    font-family: "Montserrat", sans-serif;
-    margin-bottom: 10px;
-    padding-inline: 20px;
-    padding-block: 10px;
-    font-size: 1.6em;   /* Aumenta el tamaño del mensaje */
-    width: fit-content;
-    flex-direction: column;
-    border-radius: 10px;
-    background-color: rgb(0, 0, 0, 0.5);
-    color: white;
-    text-shadow: 1px 2px 5px rgb(0, 0, 0, 1);
-    display: flex;
-    align-items: start;
-    gap: 4px;
-    opacity: 1;
-    flex-wrap: wrap;
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.message-text {
-    max-width: var(--message-max-width);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-}
-
-.badges {
-    display: flex;
-    gap: 6px;
-}
-
-.badges img {
-    border-radius: 50%;
-    box-shadow: 0px 0px 5px rgb(0, 0, 0, 0.1);
-    width: 40px;
-    height: 40px;
-}
-
-.appear {
-    opacity: 0;
-    transform: translateY(20px); /* Animación de entrada */
-    animation: appearAnimation 0.5s forwards;
-}
-
-@keyframes appearAnimation {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.disappear {
-    opacity: 0;
-    transform: translateY(-20px); /* Animación de salida */
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
 body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -148,4 +66,116 @@ button:hover {
 h2 {
     margin-top: 20px;
     color: #5c7cfa;
+}
+
+
+
+:root {
+    --message-max-width: 900px;
+}
+
+/* reset css */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.chat_line {
+    line-height: 30px;
+    font-family: roboto,sans-serif;
+    font-size: 24px;
+    color: #fff;
+}
+
+#chat_container{text-shadow:2px 2px 2px #000}
+
+#chat_container{-webkit-text-stroke:1px #000}
+
+#chat_container {
+    width: calc(100% - 20px);
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    overflow: hidden;
+    background-color: transparent;
+    color: white;
+    font-weight: 800;
+    word-break: break-word;
+}
+
+.user_info {
+    display: inline-block;
+}
+
+.badge {
+    vertical-align: middle;
+    border-radius: 10%;
+}
+
+.zero-width_container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.cheer_bits {
+    font-size: 0.6em;
+    -webkit-text-stroke: 1px black;
+}
+
+.emote {
+    vertical-align: middle;
+}
+
+.zero-width {
+    position: absolute;
+}
+
+.emoji {
+    vertical-align: middle;
+}
+
+.hidden {
+    display: none;
+}
+
+.badge {
+    width: 16px;
+    height: 16px;
+    margin-right: 2px;
+    margin-bottom: 3px;
+}
+
+.badge:last-of-type {
+    margin-right: 3px;
+}
+
+.colon {
+    margin-right: 8px;
+}
+
+.cheer_bits {
+    font-weight: 700;
+    margin-left: 2px;
+    margin-right: 4px;
+}
+
+.cheer_emote {
+    max-height: 35px;
+    margin-bottom: -6px;
+}
+
+.emote {
+    max-width: 75px;
+    max-height: 25px;
+    margin-right: -2px;
+}
+
+.upscale {
+    height: 25px;
+}
+
+.emoji {
+    height: 22px;
 }

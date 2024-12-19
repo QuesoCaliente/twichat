@@ -118,7 +118,7 @@ var parseBadgeInfo = (badgeInfo) => {
   };
 };
 
-// src/modules/message/badges/badges.json
+// src/modules/message/badges/badges.ts
 var badges_default = [
   {
     text: "1979-revolution/1",
@@ -1462,12 +1462,12 @@ var parseBadges = (fields) => {
   return badgesName.map((name) => {
     const value = badges[name];
     const key = `${name}/${value}`;
-    const keyData = badges_default.find((badge) => badge.text === key);
+    const keyData = badges_default.find((badge) => badge.text === key) ?? { image: "", description: "" };
     const data = {
       name,
       value,
-      image: keyData?.image,
-      description: keyData?.description
+      image: keyData.image,
+      description: keyData.description
     };
     name === "subscriber" && (data.fullMonths = Number(badgeInfo.subscriber));
     name === "founder" && (data.founderNumber = Number(badgeInfo.founder));
@@ -1477,13 +1477,16 @@ var parseBadges = (fields) => {
 };
 
 // src/modules/message/bots.js
-var bots_default = [
+var BOTLIST = [
   { name: "streamelements", type: "bot" },
   { name: "nightbot", type: "bot" }
 ];
+var bots_default = {
+  add: (name) => BOTLIST.push({ name, type: "bot" }),
+  getAll: () => BOTLIST.map((bot) => bot.name)
+};
 
 // src/modules/message/parseUser.ts
-var BOTNAMES = bots_default.map((bot) => bot.name);
 var parseUser = (fields) => ({
   username: fields.username,
   displayName: fields["display-name"] || fields.username,
@@ -1494,14 +1497,14 @@ var parseUser = (fields) => ({
   isPrime: Boolean(fields.badges?.premium === "1"),
   // isTurbo: Boolean(fields.turbo), // Deprecated
   isTurbo: Boolean(fields.badges?.turbo === "1"),
-  isBot: Boolean(BOTNAMES.includes(fields.username))
+  isBot: bots_default.getAll().includes(fields.username)
   // serType: fields["user-type"] || "normal",
 });
 
 // src/modules/message/emotes/createEmotesDictionary.ts
 var createEmotesDictionary = (rawMessage) => {
   if (!rawMessage) {
-    return {};
+    return [];
   }
   const emoteDictionary = [];
   const emoteList = rawMessage.split("/");
@@ -1550,6 +1553,7 @@ var parseMessageWithEmotes = (fields) => {
     newMessage.push(getEmoteImage(name));
     i = end + 1;
   });
+  i < rawMessage.length && newMessage.push(createFragment(rawMessage.substring(i)));
   return groupElements(newMessage);
 };
 
@@ -1583,6 +1587,8 @@ var parseMessage = (fields) => {
     isFirstMessage: Number(fields["first-msg"] ?? 0) !== 0,
     isReturningChatter: Number(fields["returning-chatter"] ?? 0) !== 0,
     isHighlightedMessage: fields["msg-id"] === "highlighted-message",
+    isGigantifiedEmoteMessage: fields["msg-id"] === "gigantified-emote-message",
+    isAnimatedMessage: fields["msg-id"] === "animated-message",
     flagsInfo,
     roomId: Number(fields["room-id"]),
     tmi: Number(fields["tmi-sent-ts"]),
@@ -1899,7 +1905,7 @@ var parseUserNotice = ({ eventMessage }) => {
 };
 
 // src/modules/parseRawMessage.ts
-var parseRawMessage = ({ eventMessage, timeStamp }) => {
+var parseRawMessage = ({ eventMessage }) => {
   const [host, id, user] = eventMessage.split(" ", 3);
   const message = eventMessage.split(" ").slice(3).join(" ").substring(1);
   console.log("RAW: ", eventMessage);
@@ -1975,32 +1981,39 @@ var WEBSOCKET_URL = isHttp ? "ws://irc-ws.chat.twitch.tv:80" : "wss://irc-ws.cha
 var USERNAME = "justinfan123";
 var DEBUG = true;
 var Client = class {
+  #client;
+  #startTime;
+  #events = [];
+  #done = false;
   channels = [];
-  client;
-  startTime;
-  events = [];
-  done = false;
   options;
   connect(options) {
     this.options = options;
-    this.client = new WebSocket(WEBSOCKET_URL);
-    this.startTime = (/* @__PURE__ */ new Date()).getTime();
-    this.channels.push(...options.channels);
-    this.client.addEventListener("open", (event) => this.open(event));
-    this.client.addEventListener("message", (event) => this.message(event));
-    this.client.addEventListener("close", (event) => this.close(event));
+    this.#done = false;
+    this.#client = new WebSocket(WEBSOCKET_URL);
+    this.#startTime = (/* @__PURE__ */ new Date()).getTime();
+    this.channels = [...options.channels];
+    this.#client.addEventListener("open", this.#open.bind(this));
+    this.#client.addEventListener("message", this.#message.bind(this));
+    this.#client.addEventListener("close", this.#close.bind(this));
   }
-  open(event) {
+  async isLive(channel) {
+    const URL = `https://static-cdn.jtvnw.net/previews-ttv/live_user_${channel}-150x100.jpg`;
+    return await fetch(URL, { method: "HEAD" }).then((response) => !response.url.includes("/404_preview"));
+  }
+  #open(event) {
     DEBUG && console.log(`Conectado a Twitch: ${event.target.url}`);
-    this.client?.send("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership");
-    this.client?.send(`NICK ${USERNAME}`);
-    this.channels.forEach((channel) => this.client?.send(`JOIN #${channel}`));
+    this.#client?.send("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership");
+    this.#client?.send(`NICK ${USERNAME}`);
+    this.channels.forEach(
+      (channel) => this.#client?.send(`JOIN #${channel}`)
+    );
   }
   on(type, action) {
     const object = { type, action };
-    this.events.push(object);
+    this.#events.push(object);
   }
-  message(event) {
+  #message(event) {
     const data = chop(event.data);
     if (data === "PING :tmi.twitch.tv") {
       this.pong();
@@ -2035,20 +2048,41 @@ var Client = class {
         case "USERNOTICE":
           this.#manageEvent(parseUserNotice({ eventMessage }));
           break;
+        /*
+        case "GLOBALUSERSTATE":
+          console.log("----> GLOBALUSERSTATE: ", eventMessage);
+          break;
+        case "USERSTATE":
+          console.log("----> USERSTATE: ", eventMessage);
+          break;
+        case "RECONNECT":
+          console.log("----> RECONNECT: ", eventMessage);
+          break;
+        */
         case "CAP":
+        // CAP: Connect
         case "001":
+        // 001: Welcome
         case "002":
+        // 002: Host
         case "003":
+        // 003: Server
         case "004":
+        // 004: ?
         case "372":
+        // 372: Egg Easter
         case "375":
+        // 375: ?
         case "376":
+        // 376: ?
         case "353":
+        // 353: NAMES IRC
         case "366":
+        // 366: /NAMES IRC
         case "421":
           break;
         default:
-          !this.done && console.log(eventMessage);
+          !this.#done && console.log(eventMessage);
           this.#manageEvent(parseRawMessage({ eventMessage }));
           break;
       }
@@ -2059,16 +2093,23 @@ var Client = class {
     if (["join", "part"].includes(eventType) && eventData.username && eventData.username.startsWith("justinfan")) {
       return;
     }
-    this.done = true;
-    this.events.filter(({ type }) => type === eventType).forEach(({ action }) => action(eventData));
+    this.#done = true;
+    this.#events.filter(({ type }) => type === eventType).forEach(({ action }) => action(eventData));
   }
   pong() {
-    this.client?.send("PONG :tmi.twitch.tv");
+    this.#client?.send("PONG :tmi.twitch.tv");
     DEBUG && console.log("PONG :tmi.twitch.tv");
   }
-  close(event) {
+  close() {
+    this.#client?.removeEventListener("open", this.#open.bind(this));
+    this.#client?.removeEventListener("message", this.#message.bind(this));
+    this.#client?.removeEventListener("close", this.#close.bind(this));
+    this.#client?.close();
+  }
+  #close(event) {
     const { type, reason, code } = event;
     DEBUG && console.log(`${type}: REASON ${reason} ${code}`);
+    this.close();
     if (code === 1006) {
       console.log("Reconnectando en 5 segundos...");
       setTimeout(() => this.options && this.connect(this.options), 5e3);

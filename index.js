@@ -5,80 +5,96 @@ const getParams = (param) => {
     return urlParams.get(param);
 };
 
-const init = () => {
+const createChatLine = (message, badges, userInfo, messageInfo) => {
+    const fontSize = getParams('fontSize') || '24px';
+
+    const chatLine = document.createElement('div');
+    chatLine.className = 'chat_line';
+    chatLine.dataset.nick = userInfo.username;
+    chatLine.dataset.time = Date.now().toString();
+    chatLine.dataset.id = crypto.randomUUID();
+    chatLine.style.fontSize = fontSize;
+
+    const userInfoContainer = document.createElement('span');
+    userInfoContainer.className = 'user_info';
+
+
+    // Add badges
+    badges.forEach((badge) => {
+        const badgeElement = document.createElement('img');
+        badgeElement.className = 'badge';
+        badgeElement.style.height = fontSize;
+        badgeElement.style.width = fontSize;
+        badgeElement.src = badge.image;
+        badgeElement.alt = badge.name;
+        badgeElement.title = badge.description;
+        userInfoContainer.appendChild(badgeElement);
+    });
+
+    // Add username and colon
+    const usernameSpan = document.createElement('span');
+    usernameSpan.className = 'nick';
+    usernameSpan.style.color = userInfo.color;
+    usernameSpan.textContent = userInfo.displayName;
+
+    const colonSpan = document.createElement('span');
+    colonSpan.className = 'colon';
+    colonSpan.textContent = ':';
+
+    userInfoContainer.appendChild(usernameSpan);
+    userInfoContainer.appendChild(colonSpan);
+
+    // Add message text
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
+    const messageSpan = document.createElement('span');
+
+    messageSpan.textContent = messageInfo.message;
+
+    chatLine.appendChild(userInfoContainer);
+    chatLine.appendChild(messageInfo.message);
+    
+
+    return chatLine;
+};
+
+const init = async () => {
     const channel = getParams('channel');
-    const invertir = getParams('invertir') === 'true'; // Obtener el parámetro 'invertir'
-    const maxComentarios = parseInt(getParams('comentarios'), 10) || 10; // Obtener el límite de comentarios, por defecto 10
-    const messageMaxWidth = getParams('maxWidth') || '900px'; // Obtener el ancho máximo desde los parámetros, por defecto 900px
+    const invertir = getParams('invertir') === 'true';
+    const maxComentarios = parseInt(getParams('comentarios'), 10) || 10;
+    const messageMaxWidth = getParams('maxWidth') || '900px';
 
     if (!channel) return;
 
-    // Establecer el ancho máximo como una variable CSS
     document.documentElement.style.setProperty('--message-max-width', messageMaxWidth);
 
     client.connect({ channels: [channel] });
 
-    const twitchContainer = document.getElementById('twitch-container');
+    const twitchContainer = document.getElementById('chat_container');
 
-    client.on('message', ({ message, badges, userInfo }) => {
-        const messageContainer = document.createElement('div');
-        console.log('message', message);
-        messageContainer.classList.add('message', 'appear'); // Agregar clase para animación de aparición
+    client.on('message', ({ message, badges, userInfo, messageInfo }) => {
+        const chatLine = createChatLine(message, badges, userInfo, messageInfo);
 
-        const badgeContainer = document.createElement('div');
-        badgeContainer.classList.add('badges');
-
-        // Mostrar las insignias (badges)
-        badges.forEach((badge) => {
-            const badgeElement = document.createElement('img');
-            badgeElement.src = badge.image;
-            badgeElement.alt = badge.name;
-            badgeElement.title = badge.description;
-            badgeElement.style.display = 'block'; // Tamaño de las insignias
-            badgeContainer.appendChild(badgeElement);
-        });
-
-        messageContainer.appendChild(badgeContainer);
-        messageContainer.innerHTML += `<span class="username" style="color: ${userInfo.color}">${userInfo.displayName}:</span> <p class="message-text">${message}</p>`;
-
-        // Limitar la cantidad de comentarios en pantalla
-        if (twitchContainer.childElementCount >= maxComentarios) {
+        // Manage message limit
+        while (twitchContainer.childElementCount >= maxComentarios) {
             if (invertir) {
-                // Si los comentarios están invertidos, eliminar el último comentario (el más reciente)
-                const lastMessage = twitchContainer.lastChild;
-                lastMessage.classList.add('disappear'); // Agregar clase para animación de desaparición
-                setTimeout(() => {
-                    twitchContainer.removeChild(lastMessage);
-                }, 500); // Tiempo de la animación antes de eliminar
+                twitchContainer.removeChild(twitchContainer.lastChild);
             } else {
-                // Si no están invertidos, eliminar el primer comentario (el más antiguo)
-                const firstMessage = twitchContainer.firstChild;
-                firstMessage.classList.add('disappear'); // Agregar clase para animación de desaparición
-                setTimeout(() => {
-                    twitchContainer.removeChild(firstMessage);
-                }, 500); // Tiempo de la animación antes de eliminar
+                twitchContainer.removeChild(twitchContainer.firstChild);
             }
         }
 
-        // Agregar el mensaje al contenedor
+        // Add new message
         if (invertir) {
-            twitchContainer.insertBefore(messageContainer, twitchContainer.firstChild);
+            twitchContainer.insertBefore(chatLine, twitchContainer.firstChild);
         } else {
-            twitchContainer.appendChild(messageContainer);
+            twitchContainer.appendChild(chatLine);
         }
 
-        // Desplazamiento automático
+        // Auto-scroll for specific user
         if (userInfo.username === 'mtmi') {
             twitchContainer.scrollTop = twitchContainer.scrollHeight;
         }
-
-        // Eliminar el mensaje después de 10 segundos con animación de desaparición
-        setTimeout(() => {
-            messageContainer.classList.add('disappear'); // Iniciar animación de desaparición
-            setTimeout(() => {
-                messageContainer.remove();
-            }, 500); // Eliminar el elemento después de la animación (0.5s)
-        }, 10000);
     });
 };
 
